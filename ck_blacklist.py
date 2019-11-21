@@ -1,3 +1,5 @@
+from typing import List, Any
+
 import urllib3
 import csv
 from scapy.all import *
@@ -9,7 +11,7 @@ str1 = ''
 pcap = rdpcap("capture.cap")
 link = "https://isc.sans.edu/block.txt"
 mylines = []
-iplist=[]
+iplist: List[Any]=[]
 newblocklist=[]
 newcaplist=[]
 def fatch(link):
@@ -34,17 +36,13 @@ def blacklist():
 			iplist.append(row['Start'])
 	return iplist
 
-def remove_zero (iplist):
-	for row in iplist:
-			i = '{}.'.format(row.rsplit('.',1)[0])
-			newblocklist.append(i)
-	return newblocklist
-
-def remove_last_oct (ips):
-	for row in ips:
+def remove_last_octet (n: object) -> object:
+	result = []
+	i = ""
+	for row in n:
 			i = '{}.'.format(row.rsplit('.', 1)[0])
-			newcaplist.append(i)
-	return newcaplist
+			result.append(i)
+	return result
 
 def capture (pcap):
 	for pkt in pcap:
@@ -58,13 +56,13 @@ def main():
 	fatch(link)
 	remove_sign()
 	blacklist()
-	remove_zero(iplist)
 	capture(pcap)
-	remove_last_oct(ips)
+	newblocklist = remove_last_octet(iplist)
+	newcaplist = remove_last_octet(ips)
 	newcaplist.append('89.248.174.')                # just to see the lambda work, append a blocked ip
-	print('Black List IPs: ',list(newblocklist))    # you can append any new block ip by x.y.z.
-	print('Captured IPs: ',list(newcaplist))
-	print ('Alert: Being Attack By: ', list(filter(lambda x: x in newcaplist,newblocklist)))
+	print('Black List IPs:      ',list(newblocklist))    # you can append any new block ip by x.y.z.
+	print('Captured IPs:        ',list(newcaplist))
+	print('Alert: Attacked By:  ', list(filter(lambda x: x in newcaplist,newblocklist)))
 
 if __name__ == "__main__":
 	main()
